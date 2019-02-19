@@ -39,3 +39,8 @@ fn simple3() {
         b"a\tc\n",
     )
 }
+
+#[test]
+fn widechar() {
+    input_output(&["-c", "2"], "💩😀💩".as_bytes(), "😀\n".as_bytes());
+}
