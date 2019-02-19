@@ -1,20 +1,20 @@
-lazy_static::lazy_static! {
-    static ref INPUT_OUTPUT_MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
-}
-
 fn input_output(args: &[impl AsRef<std::ffi::OsStr>], input: &[u8], output: &[u8]) {
-    let _lock = INPUT_OUTPUT_MUTEX.lock();
-    let mut input_file = std::fs::File::create("test_input").unwrap();
+    let mut input_file = tempfile::tempfile().unwrap();
     std::io::Write::write_all(&mut input_file, input).unwrap();
-    std::mem::drop(input);
-    let input_file = std::fs::File::open("test_input").unwrap();
-    let real_output = std::process::Command::new("target/debug/cut")
+    std::io::Seek::seek(&mut input_file, std::io::SeekFrom::Start(0)).unwrap();
+    let mut path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path.push("target");
+    #[cfg(debug_assertions)]
+    path.push("debug");
+    #[cfg(not(debug_assertions))]
+    path.push("release");
+    path.push(env!("CARGO_PKG_NAME"));
+    let real_output = std::process::Command::new(&path)
         .args(args)
         .stdin(input_file)
         .output()
         .unwrap();
     assert_eq!(&real_output.stdout[..], output);
-    std::fs::remove_file("test_input").unwrap();
 }
 
 #[test]
