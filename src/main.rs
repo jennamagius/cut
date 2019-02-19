@@ -245,7 +245,7 @@ fn main() {
                     let mut result = Vec::new();
                     let delimiter_len = delimiter.len();
                     let line_len = line.len();
-                    while cursor + delimiter_len < line_len {
+                    while cursor + delimiter_len <= line_len {
                         if &line[cursor..cursor + delimiter_len] == delimiter.as_bytes() {
                             result.push(&line[prev_cursor..cursor]);
                             cursor = cursor + delimiter_len;

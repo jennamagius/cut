@@ -44,3 +44,17 @@ fn simple3() {
 fn widechar() {
     input_output(&["-c", "2"], "💩😀💩".as_bytes(), "😀\n".as_bytes());
 }
+
+#[test]
+fn reverse() {
+    input_output(&["-b4-2"], b"abcde\n", b"dcb\n")
+}
+
+#[test]
+fn only_delimited() {
+    input_output(
+        &["--only-delimited", "-d", "banana", "-f-", "-j "],
+        b"abananabbananac\na b c d\nqbananarbanana",
+        b"a b c\nq r \n",
+    );
+}
