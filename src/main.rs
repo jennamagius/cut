@@ -74,14 +74,8 @@ impl Range {
     fn splitrange(range: &str, delim: &str) -> (Option<usize>, Option<usize>) {
         let mut iter = range.splitn(2, delim);
         (
-            match iter.next() {
-                Some(val) => val.parse().ok(),
-                None => None,
-            },
-            match iter.next() {
-                Some(val) => val.parse().ok(),
-                None => None,
-            },
+            iter.next().unwrap().parse().ok(),
+            iter.next().unwrap().parse().ok(),
         )
     }
 
@@ -328,7 +322,7 @@ fn main() {
         } else {
             Range::select(&ranges, &inputs, &joiner)
         };
-        result.extend(b"\n");
+        result.push(line_delim);
         std::io::Write::write_all(&mut stdout_lock, &result).unwrap();
     }
 }
