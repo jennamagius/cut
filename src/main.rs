@@ -115,7 +115,7 @@ impl Range {
 
     fn bytes_join(selected: &[&[u8]], joiner: &[u8]) -> Vec<u8> {
         let mut result = Vec::new();
-        for item in selected.iter().take(selected.len() - 1) {
+        for item in selected.iter().take(selected.len().saturating_sub(1)) {
             result.extend(*item);
             result.extend(joiner);
         }
@@ -135,8 +135,14 @@ impl Range {
     }
 
     fn select_one<'a>(&self, inputs: &[&'a [u8]]) -> Vec<&'a [u8]> {
-        let end = self.end.unwrap_or(inputs.len());
+        let mut end = self.end.unwrap_or(inputs.len());
         let start = self.start.unwrap_or(1);
+        if end > inputs.len() {
+            end = inputs.len();
+        }
+        if start > end {
+            return Vec::new();
+        }
         if self.inverting {
             inputs[(start - 1)..end]
                 .into_iter()
@@ -162,8 +168,14 @@ impl Range {
     }
 
     fn select_complement_one(&self, inputs: &mut [Option<&[u8]>]) {
-        let end = self.end.unwrap_or(inputs.len());
+        let mut end = self.end.unwrap_or(inputs.len());
         let start = self.start.unwrap_or(1);
+        if end > inputs.len() {
+            end = inputs.len();
+        }
+        if start > end {
+            return;
+        }
         for i in &mut inputs[(start - 1)..end] {
             *i = None;
         }

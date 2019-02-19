@@ -68,3 +68,31 @@ fn tab_delimited() {
 fn zero_delimited() {
     input_output(&["-Z", "-f-", "-j", ".."], b"a\0b\0c", b"a..b..c\n")
 }
+
+#[test]
+fn excess_range() {
+    input_output(&["-d,", "-f2-90"], b"a,b,c\na,b,c,d,e\n", b"b,c\nb,c,d,e\n");
+}
+
+#[test]
+fn excess_range_complement() {
+    input_output(
+        &["--complement", "-d,", "-f2-90"],
+        b"a,b,c\na,b,c,d,e\n",
+        b"a\na\n",
+    );
+}
+
+#[test]
+fn excess_field() {
+    input_output(&["-d,", "-f2,90"], b"a,b,c\na,b,c,d,e\n", b"b\nb\n");
+}
+
+#[test]
+fn excess_field_complement() {
+    input_output(
+        &["--complement", "-d,", "-f2,90"],
+        b"a,b,c\na,b,c,d,e\n",
+        b"a,c\na,c,d,e\n",
+    );
+}
