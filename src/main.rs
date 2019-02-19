@@ -5,6 +5,7 @@ fn clap_app() -> clap::App<'static, 'static> {
         .arg(
             Arg::with_name("delimiter")
                 .takes_value(true)
+                .help("What to split on. If not specified, splits on contiguous hunks of whitespace characters. Can be multiple characters and non-utf8. Input mut be utf8 if this parameter is not specified, but may be non-utf8 otherwise.")
                 .allow_hyphen_values(true)
                 .short("d")
                 .long("delimiter"),
@@ -12,6 +13,7 @@ fn clap_app() -> clap::App<'static, 'static> {
         .arg(
             Arg::with_name("fields")
                 .takes_value(true)
+                .help("Which fields to output. Fields can be repeated. Ranges can be backwards. Use the special value '~' to select all fields but in reverse order.")
                 .allow_hyphen_values(true)
                 .short("f")
                 .long("fields"),
@@ -19,6 +21,7 @@ fn clap_app() -> clap::App<'static, 'static> {
         .arg(
             Arg::with_name("characters")
                 .takes_value(true)
+                .help("Which characters to output. Requires input lines to be utf8.")
                 .allow_hyphen_values(true)
                 .short("c")
                 .long("characters"),
@@ -26,6 +29,7 @@ fn clap_app() -> clap::App<'static, 'static> {
         .arg(
             Arg::with_name("bytes")
                 .takes_value(true)
+                .help("Which bytes to output. Use special value '~' to make a slightly inefficient version of 'rev'.")
                 .allow_hyphen_values(true)
                 .short("b")
                 .long("bytes"),
@@ -33,23 +37,27 @@ fn clap_app() -> clap::App<'static, 'static> {
         .arg(
             Arg::with_name("complement")
                 .takes_value(false)
+                .help("Output all the fields that weren't selected, in their original order, joined by joiner.")
                 .long("complement"),
         )
         .arg(
             Arg::with_name("zero-terminated")
                 .takes_value(false)
+                .help("Lines end with \\0 instead of \\n")
                 .short("z")
                 .long("zero-terminated"),
         )
         .arg(
             Arg::with_name("only-delimited")
                 .takes_value(false)
+                .help("Skip any lines that don't contain the delimiter. If no delimiter is provided but -f is being used, skip any lines that don't contain any whitespace. Has no effect for -c or -b")
                 .short("s")
                 .long("only-delimited"),
         )
         .arg(
             Arg::with_name("joiner")
                 .takes_value(true)
+                .help("The value to be inserted between selected fields. Defaults to the value of delimiter, \\t for -f without -d, or the empty string for -c and -b")
                 .short("j")
                 .long("joiner"),
         )
