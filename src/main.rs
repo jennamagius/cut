@@ -1,3 +1,5 @@
+use std::os::unix::ffi::OsStrExt;
+
 fn clap_app() -> clap::App<'static, 'static> {
     use clap::Arg;
     clap::App::new("cut")
@@ -47,6 +49,8 @@ fn clap_app() -> clap::App<'static, 'static> {
                 .short("z")
                 .long("zero-terminated"),
         )
+        .arg(Arg::with_name("zero-delimited").takes_value(false).short("Z").long("zero-delimited").help("A quick way to specify -d$(echo -e -n \0)").conflicts_with("delimiter"))
+        .arg(Arg::with_name("tab-delimited").takes_value(false).short("t").long("tab-delimited").help("A quick way to specify -d$(echo -e -n \t)").conflicts_with("zero-delimited").conflicts_with("delimiter"))
         .arg(
             Arg::with_name("only-delimited")
                 .takes_value(false)
@@ -214,6 +218,16 @@ fn main() {
             std::process::exit(1);
         }
     };
+    let delimiter = match (
+        matches.is_present("delimiter"),
+        matches.is_present("zero-delimited"),
+        matches.is_present("tab-delimited"),
+    ) {
+        (true, false, false) => Some(matches.value_of_os("delimiter").unwrap().as_bytes()),
+        (false, true, false) => Some(&b"\0"[..]),
+        (false, false, true) => Some(&b"\t"[..]),
+        _ => None,
+    };
     let ranges: Vec<Range> = ranges
         .split(",")
         .map(|x| {
@@ -237,16 +251,15 @@ fn main() {
         line_number = line_number.checked_add(1).unwrap();
         let inputs: Vec<&[u8]> = match mode {
             Mode::Fields => {
-                let result = if matches.is_present("delimiter") {
-                    use std::os::unix::ffi::OsStrExt;
-                    let delimiter = matches.value_of_os("delimiter").unwrap();
+                let result = if delimiter.is_some() {
+                    let delimiter = delimiter.unwrap();
                     let mut cursor = 0;
                     let mut prev_cursor = 0;
                     let mut result = Vec::new();
                     let delimiter_len = delimiter.len();
                     let line_len = line.len();
                     while cursor + delimiter_len <= line_len {
-                        if &line[cursor..cursor + delimiter_len] == delimiter.as_bytes() {
+                        if &line[cursor..cursor + delimiter_len] == delimiter {
                             result.push(&line[prev_cursor..cursor]);
                             cursor = cursor + delimiter_len;
                             prev_cursor = cursor;
@@ -305,16 +318,10 @@ fn main() {
                 result
             }
         };
-        use std::os::unix::ffi::OsStrExt;
         let joiner = matches
             .value_of_os("joiner")
             .map(|x| x.as_bytes())
-            .unwrap_or_else(|| {
-                matches
-                    .value_of_os("delimiter")
-                    .map(|x| x.as_bytes())
-                    .unwrap_or(if mode == Mode::Fields { b"\t" } else { b"" })
-            });
+            .unwrap_or_else(|| delimiter.unwrap_or(if mode == Mode::Fields { b"\t" } else { b"" }));
         let stdout = std::io::stdout();
         let mut stdout_lock = stdout.lock();
         let mut result = if matches.is_present("complement") {

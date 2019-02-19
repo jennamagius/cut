@@ -23,7 +23,7 @@ fn simple1() {
 }
 
 #[test]
-fn simple2() {
+fn zero_terminated() {
     input_output(
         &["-z", "-b=2,2,2"],
         b"\xff\xfe\xfd\0abc\0",
@@ -32,7 +32,7 @@ fn simple2() {
 }
 
 #[test]
-fn simple3() {
+fn complement() {
     input_output(
         &["--complement", "-f", "2,4"],
         b"a\t \tb   c\td\n",
@@ -57,4 +57,14 @@ fn only_delimited() {
         b"abananabbananac\na b c d\nqbananarbanana",
         b"a b c\nq r \n",
     );
+}
+
+#[test]
+fn tab_delimited() {
+    input_output(&["-t", "-f~", "-j "], b"a\t \t b\tc", b"c  b   a\n")
+}
+
+#[test]
+fn zero_delimited() {
+    input_output(&["-Z", "-f-", "-j", ".."], b"a\0b\0c", b"a..b..c\n")
 }
